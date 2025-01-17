@@ -1,5 +1,5 @@
 import type { User as SupabaseUser } from "@supabase/auth-js";
-import { User, UserPayload } from "../types/user.types";
+import { LoginPayload, User, UserPayload } from "../types/user.types";
 import supabase from "../../../utils/config/supabase.config";
 
 class AuthService {
@@ -31,6 +31,38 @@ class AuthService {
     if (error) throw new Error(error.message);
 
     return data[0];
+  }
+
+  async logInWithEmailPassword(
+    loginPayload: LoginPayload,
+  ): Promise<SupabaseUser> {
+    const { data, error } =
+      await supabase.auth.signInWithPassword(loginPayload);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data.user;
+  }
+
+  async getUserFromDB(userEmail: string): Promise<User> {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", userEmail);
+
+    if (error) throw new Error(error.message);
+
+    return data[0];
+  }
+
+  async signOut() {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 }
 

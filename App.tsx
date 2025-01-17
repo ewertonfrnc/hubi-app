@@ -12,11 +12,9 @@ export default function App() {
   return (
     <SafeAreaProvider style={styles.container}>
       <PaperProvider theme={reactPaperTheme}>
-        {/* Contexts */}
         <AuthProvider>
           <Navigation />
         </AuthProvider>
-        {/* Contexts */}
       </PaperProvider>
 
       <StatusBar style="inverted" />

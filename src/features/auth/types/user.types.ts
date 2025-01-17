@@ -13,3 +13,8 @@ export type UserPayload = {
   username: string;
   password: string;
 };
+
+export type LoginPayload = {
+  email: string;
+  password: string;
+};

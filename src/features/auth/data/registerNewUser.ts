@@ -3,12 +3,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import { User, UserPayload } from "../types/user.types";
 
 export async function registerUser(userPayload: UserPayload) {
-  const supabaseUser = await AuthService.registerNewUser({
-    name: "Ewerton",
-    email: "teste@teste.com",
-    username: "ewertonfrnc",
-    password: "123456",
-  });
+  const supabaseUser = await AuthService.registerNewUser(userPayload);
 
   const userToRegisterOnDatabase = formatSupabaseUser(supabaseUser);
   return await AuthService.registerNewUserToDB(userToRegisterOnDatabase);

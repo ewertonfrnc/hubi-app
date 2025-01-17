@@ -1,20 +1,31 @@
+import { useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Button, Divider } from "react-native-paper";
+import { Button, Divider, IconButton } from "react-native-paper";
+import { StackScreenProps } from "@react-navigation/stack";
 
 import { theme } from "../../../utils/theme";
+import type { ExploreStackParamList } from "../../../navigation/types/RootStack.types";
 
-import TrendingMovies from "../components/Trending.component";
 import UpcomingMovies from "../components/UpcomingMovies";
-import type { RootStackParamList } from "../../../navigation/types/RootStack.types";
+import TrendingMovies from "../components/Trending.component";
 
-type Props = NativeStackScreenProps<RootStackParamList>;
+import AuthService from "../../auth/services/auth.service";
+import { AuthContext } from "../../auth/contexts/auth.context";
+
+type Props = StackScreenProps<ExploreStackParamList>;
 
 export default function ExploreScreen({ navigation }: Props) {
+  const { setCurrentUser } = useContext(AuthContext);
+
   function handleNavigateTo(movieId: number): void {
     if (!movieId) return;
     navigation.navigate("Details", { movieId });
+  }
+
+  async function logOut() {
+    await AuthService.signOut();
+    setCurrentUser(null);
   }
 
   return (
@@ -26,6 +37,13 @@ export default function ExploreScreen({ navigation }: Props) {
         <Button mode="outlined" onPress={() => {}}>
           Séries
         </Button>
+
+        <IconButton
+          icon="account-cog"
+          size={20}
+          style={styles.settingsBtn}
+          onPress={logOut}
+        />
       </View>
       <Divider style={styles.divider} />
       <TrendingMovies onPress={handleNavigateTo} />
@@ -43,7 +61,12 @@ const styles = StyleSheet.create({
   },
   categories: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: theme.spaces.md,
+  },
+  settingsBtn: {
+    marginLeft: "auto",
   },
   divider: {
     marginVertical: theme.spaces.md,

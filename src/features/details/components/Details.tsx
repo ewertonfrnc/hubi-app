@@ -34,6 +34,7 @@ export default function Details({ movie, navigateToAuthScreen }: Props) {
 
   function authController() {
     if (!currentUser) setRegisterModalVisible(true);
+    else showModal();
   }
 
   function handleAuthNavigation() {
