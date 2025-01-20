@@ -4,6 +4,7 @@ export type User = {
   email: string;
   username: string;
   createdAt: string;
+  avatarPath?: string;
 };
 
 export type UserPayload = {

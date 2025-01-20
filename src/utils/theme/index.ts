@@ -24,6 +24,6 @@ export const reactNavigationTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: "#111",
+    background: theme.COLORS.ui.dark,
   },
 };

@@ -26,7 +26,8 @@
     "react-native-screens": "~4.4.0",
     "react-native-gesture-handler": "~2.20.2",
     "@react-native-masked-view/masked-view": "0.3.2",
-    "expo-dev-client": "~5.0.9"
+    "expo-dev-client": "~5.0.9",
+    "expo-linear-gradient": "~14.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

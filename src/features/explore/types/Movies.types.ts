@@ -29,6 +29,19 @@ export type TMDBCrewMember = {
   job: string;
 };
 
+export type TMDBReview = {
+  id: number;
+  author: string;
+  content: string;
+  created_at: string;
+  author_details: {
+    avatar_path: string;
+    name: string;
+    rating: number;
+    username: string;
+  };
+};
+
 export type TMDBMovie = {
   backdrop_path: string;
   id: number;
@@ -41,13 +54,14 @@ export type TMDBMovie = {
   media_type: "movie" | "tv" | "person";
   adult: boolean;
   original_language: string;
-  genre_ids: number[];
+  genres: Genre[];
   popularity: number;
   release_date: string;
   video: boolean;
   vote_average: number;
   vote_count: number;
   runtime: number;
+  reviews: { results: TMDBReview[] };
   credits: {
     cast: TMDBCastMember[];
     crew: TMDBCrewMember[];
@@ -83,6 +97,11 @@ export type CrewMember = {
   job: string;
 };
 
+export type Genre = {
+  id: number;
+  name: string;
+};
+
 export type Movie = {
   backdropPath: string;
   id: number;
@@ -92,11 +111,12 @@ export type Movie = {
   overview: string;
   posterPath: string;
   mediaType: "movie" | "tv" | "person";
-  genreIds: number[];
+  genreIds: Genre[];
   releaseDate: string;
   voteAverage: number;
   voteCount: number;
   runtime: number;
+  reviews: MovieReview[];
   cast: CastMember[];
   crew: CrewMember[];
 };
@@ -104,10 +124,11 @@ export type Movie = {
 export type MovieReview = {
   id: number;
   createdAt: string;
-  movieId: number;
-  userId: string;
+  movieId?: number;
+  userId?: string;
   review: string;
-  spoilers: boolean;
+  spoilers?: boolean;
+  likeCount: number;
   users: User;
 };
 

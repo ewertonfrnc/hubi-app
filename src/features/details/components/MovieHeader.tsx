@@ -1,21 +1,20 @@
 import { View, ImageBackground, Image, StyleSheet } from "react-native";
-import { Text, Button } from "react-native-paper";
+import { Text } from "react-native-paper";
 import { Movie } from "../../explore/types/Movies.types";
 
-import { BASE_IMAGE_URL } from "../../../utils/tmdb";
+import { BASE_IMAGE_URL, generateGenreLabel } from "../../../utils/tmdb";
 import { theme } from "../../../utils/theme";
+import { getFullYear } from "../../../utils/formatters";
 
 type Props = { movie: Movie };
 
-export default function DetailsHeader({ movie }: Props) {
+export default function MovieHeader({ movie }: Props) {
   return (
-    <View>
+    <>
       <ImageBackground
         style={styles.imageBackground}
         resizeMode="cover"
-        source={{
-          uri: `${BASE_IMAGE_URL}${movie?.backdropPath}`,
-        }}
+        source={{ uri: `${BASE_IMAGE_URL}${movie?.backdropPath}` }}
       />
 
       <View style={styles.overview}>
@@ -26,33 +25,26 @@ export default function DetailsHeader({ movie }: Props) {
           }}
         />
 
-        <View style={styles.actions}>
-          <Button
-            icon="star-plus"
-            mode="contained"
-            onPress={() => console.log("Pressed")}
-          >
-            Avaliar
-          </Button>
+        <View style={styles.titleSection}>
+          <View>
+            <Text variant="headlineSmall" style={styles.movieTitle}>
+              {movie?.title}
+            </Text>
 
-          <Button
-            icon="chat-plus"
-            mode="contained"
-            onPress={() => console.log("Pressed")}
-          >
-            Comentar
-          </Button>
+            <Text style={styles.movieSubTitle}>
+              {`${getFullYear(movie.releaseDate)} • ${generateGenreLabel(movie.genreIds)}`}
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   imageBackground: {
-    flex: 1,
     height: 250,
-    opacity: 0.5,
+    opacity: 0.75,
   },
   overview: {
     paddingHorizontal: theme.spaces.md,
@@ -69,15 +61,15 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 4,
   },
+  titleSection: {
+    flex: 1,
+    flexDirection: "row",
+    gap: theme.spaces.sm,
+  },
   movieTitle: {
     fontWeight: "bold",
   },
   movieSubTitle: {
     opacity: 0.75,
-  },
-  actions: {
-    flex: 1,
-    flexDirection: "row",
-    gap: theme.spaces.sm,
   },
 });

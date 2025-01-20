@@ -1,4 +1,4 @@
-import { DateTime } from "luxon";
+import { DateTime, Duration } from "luxon";
 import { Movie } from "../../features/explore/types/Movies.types";
 
 export function countReleaseDays(date: string): number {
@@ -20,3 +20,23 @@ export function sortUpcomingMovies(TMDBMovies: Movie[]): Movie[] {
     return dateA.toMillis() - dateB.toMillis();
   });
 }
+
+export const minToHours = (minutos: number) => {
+  if (minutos < 0) return;
+
+  const duration = Duration.fromObject({ minutes: minutos }).shiftTo(
+    "hours",
+    "minutes",
+  );
+  const hours = duration.hours;
+  const minutes = duration.minutes;
+
+  const formattedHours = hours > 0 ? `${Math.floor(hours)}h ` : "";
+  const formattedMinutes = minutes > 0 ? `${Math.floor(minutes)}m` : "";
+
+  return formattedHours + formattedMinutes;
+};
+
+export const getFullYear = (date: string) => {
+  return new Date(date).getFullYear();
+};

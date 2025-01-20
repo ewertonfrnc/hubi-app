@@ -2,9 +2,11 @@ import {
   CastMember,
   CrewMember,
   Movie,
+  MovieReview,
   TMDBCastMember,
   TMDBCrewMember,
   TMDBMovie,
+  TMDBReview,
 } from "../../features/explore/types/Movies.types";
 
 export function formatMovieResponse(movie: TMDBMovie): Movie {
@@ -17,14 +19,32 @@ export function formatMovieResponse(movie: TMDBMovie): Movie {
     overview: movie.overview,
     posterPath: movie.poster_path,
     mediaType: movie.media_type,
-    genreIds: movie.genre_ids,
+    genreIds: movie.genres,
     releaseDate: movie.release_date,
     voteAverage: movie.vote_average,
     voteCount: movie.vote_count,
     runtime: movie?.runtime,
+    reviews: movie.reviews ? formatTMDBMovieReview(movie?.reviews.results) : [],
     cast: movie?.credits ? formatCastMember(movie?.credits?.cast) : [],
     crew: movie?.credits ? formatCrewMember(movie?.credits?.crew) : [],
   };
+}
+
+export function formatTMDBMovieReview(reviews: TMDBReview[]): MovieReview[] {
+  return reviews.map((review) => ({
+    id: review.id,
+    review: review.content,
+    createdAt: review.created_at,
+    likeCount: 0,
+    users: {
+      email: "",
+      createdAt: "",
+      name: review.author,
+      id: review.author_details.username,
+      username: review.author_details.username,
+      avatarPath: review.author_details.avatar_path,
+    },
+  }));
 }
 
 export function formatCastMember(members: TMDBCastMember[]): CastMember[] {
