@@ -21,6 +21,9 @@ import { fetchMovieReviews } from "../data/fetchMovieReviews";
 import Review from "./Review";
 import { registerNewReview } from "../data/registerNewReview";
 import { AuthContext } from "../../auth/contexts/auth.context";
+import supabase from "../../../utils/config/supabase.config";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { fetchUserById } from "../data/fetchUserById";
 
 type Props = {
   movie: Movie;
@@ -40,12 +43,32 @@ export default function MovieReviews({ movie, showModal, handleModal }: Props) {
     setShowSnackbar((prev) => !prev);
   }
 
+  async function handlePostEvent(
+    payload: RealtimePostgresChangesPayload<MovieReview>
+  ) {
+    if (payload.eventType === "INSERT" && payload?.new?.id) {
+      const newReview = { ...payload.new };
+      const reviewAuthor = await fetchUserById(newReview.userId);
+
+      newReview.users = reviewAuthor;
+      setReviews((prevReviews) => [newReview, ...prevReviews]);
+    }
+
+    if (payload.eventType === "DELETE") {
+      const updatedReviews = reviews.filter(
+        (review) => review.id !== payload.old.id
+      );
+
+      setReviews(updatedReviews);
+    }
+  }
+
   async function loadReviews() {
     setLoading(true);
 
     try {
       const movieReviews = await fetchMovieReviews(movie.id);
-      setReviews([...movieReviews, ...movie.reviews]);
+      setReviews(movieReviews);
     } catch (error) {}
 
     setLoading(false);
@@ -57,27 +80,34 @@ export default function MovieReviews({ movie, showModal, handleModal }: Props) {
     const payload: MovieReviewPayload = {
       userId: currentUser.id,
       movieId: movie.id,
-      spoilers: false,
-      review: comment,
+      content: comment,
     };
 
-    setLoading(true);
-
     try {
-      const movieReview = await registerNewReview(payload);
-      console.log({ movieReview });
+      await registerNewReview(payload);
 
       handleSnackbar();
       handleModal();
     } catch (error) {
       console.log(error);
     }
-
-    setLoading(false);
   }
 
   useEffect(() => {
+    const postChannel = supabase
+      .channel("reviews")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "movie_reviews" },
+        handlePostEvent
+      )
+      .subscribe();
+
     loadReviews();
+
+    return () => {
+      postChannel.unsubscribe();
+    };
   }, []);
 
   return (

@@ -22,8 +22,7 @@ class DetailsService {
     const { data, error } = await supabase
       .from("movie_reviews")
       .select("*, users(*)")
-      .eq("movieId", movieId)
-      .order("likeCount", { ascending: false });
+      .eq("movieId", movieId);
 
     if (error) throw new Error(error.message);
 
@@ -34,35 +33,46 @@ class DetailsService {
     const { data, error } = await supabase
       .from("movie_reviews")
       .insert([review])
-      .select();
+      .select()
+      .single();
 
     if (error) throw new Error(error.message);
 
-    return data[0];
+    return data;
   }
 
-  async addMovieReviewLike(userId: string, movieReviewId: number) {
+  async checkReviewLikesOnReview(reviewId: number) {
     const { data, error } = await supabase
-      .from("movie_reviews_likes")
-      .insert([{ userId, movieReviewId }])
-      .select(`*, movie_reviews(likeCount,movieId)`)
+      .from("movie_review_likes")
+      .select("*")
+      .eq("reviewId", reviewId);
+
+    if (error) throw new Error(error.message);
+
+    return data;
+  }
+
+  async addMovieReviewLike(userId: string, reviewId: number) {
+    const { data, error } = await supabase
+      .from("movie_review_likes")
+      .insert([{ userId, reviewId }])
+      .select()
       .single();
 
     if (error) {
       throw new Error(`Error adding like: ${error.message}`);
     }
 
-    console.log("data", data);
     return data;
   }
 
   async removeMovieReviewLike(userId: string, reviewId: number) {
     const { data, error } = await supabase
-      .from("movie_reviews_likes")
+      .from("movie_review_likes")
       .delete()
       .eq("userId", userId)
-      .eq("movieReviewId", reviewId)
-      .select(`*, movie_reviews(likeCount,movieId)`)
+      .eq("reviewId", reviewId)
+      .select()
       .single();
 
     if (error) {
@@ -70,35 +80,6 @@ class DetailsService {
     }
 
     return data;
-  }
-
-  async updateLikeCount(currentCount: number, movieId: number) {
-    const { data, error } = await supabase
-      .from("movie_reviews")
-      .update({ likeCount: currentCount + 1 })
-      .eq("movieId", movieId)
-      .select();
-
-    if (error) throw new Error(error.message);
-
-    console.log("updateLikeCount", data);
-    return data;
-  }
-
-  async hasLiked(userId: string, reviewId: number) {
-    const { data, error } = await supabase
-      .from("movie_reviews_likes")
-      .select("userId, movieReviewId")
-      .eq("userId", userId)
-      .eq("movieReviewId", reviewId)
-      .single();
-
-    if (error && error.code !== "PGRST116") {
-      // Ignorar erro de não encontrado
-      throw new Error(`Error checking like: ${error.message}`);
-    }
-
-    return !!data;
   }
 }
 

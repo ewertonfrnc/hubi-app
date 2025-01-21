@@ -33,7 +33,7 @@ export function formatMovieResponse(movie: TMDBMovie): Movie {
 export function formatTMDBMovieReview(reviews: TMDBReview[]): MovieReview[] {
   return reviews.map((review) => ({
     id: review.id,
-    review: review.content,
+    content: review.content,
     createdAt: review.created_at,
     likeCount: 0,
     users: {

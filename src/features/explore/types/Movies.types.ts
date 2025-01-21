@@ -125,8 +125,8 @@ export type MovieReview = {
   id: number;
   createdAt: string;
   movieId?: number;
-  userId?: string;
-  review: string;
+  userId: string;
+  content: string;
   spoilers?: boolean;
   likeCount: number;
   users: User;
@@ -135,8 +135,7 @@ export type MovieReview = {
 export type MovieReviewPayload = {
   userId: string;
   movieId: number;
-  review: string;
-  spoilers: boolean;
+  content: string;
 };
 
 export type MovieRatingPayload = {

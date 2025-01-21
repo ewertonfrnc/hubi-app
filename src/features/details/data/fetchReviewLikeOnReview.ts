@@ -1,8 +1,5 @@
 import DetailsServices from "../services/details.services";
 
-export async function fetchReviewLikeOnReview(
-  userId: string,
-  reviewId: number,
-): Promise<boolean> {
-  return await DetailsServices.hasLiked(userId, reviewId);
+export async function fetchReviewLikesOnReview(reviewId: number) {
+  return await DetailsServices.checkReviewLikesOnReview(reviewId);
 }

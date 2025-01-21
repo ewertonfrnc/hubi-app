@@ -1,24 +1,50 @@
 import { StyleSheet, View } from "react-native";
-import { Avatar, Card, Divider, IconButton, Text } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Avatar,
+  Card,
+  Divider,
+  IconButton,
+  Text,
+} from "react-native-paper";
 import { MovieReview } from "../../explore/types/Movies.types";
 import { theme } from "../../../utils/theme";
 import { BASE_IMAGE_URL } from "../../../utils/tmdb";
-import { useEffect, useState } from "react";
-import { fetchReviewLikeOnReview } from "../data/fetchReviewLikeOnReview";
+import { useContext, useEffect, useState } from "react";
+import { fetchReviewLikesOnReview } from "../data/fetchReviewLikeOnReview";
 import { registerReviewLike } from "../data/registerReviewLike";
 import { deleteReviewLike } from "../data/deleteReviewLike";
+import { AuthContext } from "../../auth/contexts/auth.context";
 
 type Props = { review: MovieReview };
 export default function Review({ review }: Props) {
+  const { currentUser } = useContext(AuthContext);
+
+  const [loading, setLoading] = useState(false);
+  const [likeCount, setLikeCount] = useState(review.likeCount);
   const [hasLikedReview, setHasLikedReview] = useState(false);
+  const [reviewLikes, setReviewLikes] = useState([]);
 
   function handleAvatarText() {
     return String(review.users.name.at(0));
   }
 
-  async function hasLiked() {
-    const response = await fetchReviewLikeOnReview(review.users.id, review.id);
-    setHasLikedReview(response);
+  async function hasLikedCurrentReview() {
+    if (!currentUser) return;
+
+    try {
+      const currentReviewLikes = await fetchReviewLikesOnReview(review.id);
+      // console.log("reviewLikes", currentReviewLikes, currentReviewLikes.length);
+
+      const hasLiked = currentReviewLikes.some(
+        (review) => review.userId === currentUser.id
+      );
+
+      // console.log({ hasLiked });
+      setHasLikedReview(hasLiked);
+    } catch (error) {
+      console.log("error", error);
+    }
   }
 
   function handleLike() {
@@ -27,23 +53,42 @@ export default function Review({ review }: Props) {
   }
 
   async function addMovieReviewLike() {
+    if (!currentUser) return;
+
+    setLoading(true);
+
     try {
-      await registerReviewLike(review.users.id, review.id);
+      const newReviewLikeDetails = await registerReviewLike(
+        currentUser.id,
+        review.id
+      );
+      setHasLikedReview(true);
     } catch (error) {
-      console.log(error);
+      console.log("error", error);
     }
+
+    setLoading(false);
   }
 
   async function removeMovieReviewLike() {
+    if (!currentUser) return;
+
+    setLoading(true);
+
     try {
-      await deleteReviewLike(review.users.id, review.id);
+      const removedLike = await deleteReviewLike(currentUser.id, review.id);
+      console.log("removedLike", removedLike);
+
+      setHasLikedReview(false);
     } catch (error) {
-      console.log(error);
+      console.log("error", error);
     }
+
+    setLoading(false);
   }
 
   useEffect(() => {
-    hasLiked();
+    hasLikedCurrentReview();
   }, []);
 
   return (
@@ -71,7 +116,12 @@ export default function Review({ review }: Props) {
           </View>
 
           <View style={styles.likeContainer}>
-            <Text>{review.likeCount}</Text>
+            {loading ? (
+              <ActivityIndicator size="small" />
+            ) : (
+              <Text>{likeCount}</Text>
+            )}
+
             <IconButton
               icon={hasLikedReview ? "heart" : "heart-outline"}
               size={20}
@@ -82,7 +132,7 @@ export default function Review({ review }: Props) {
 
         <Divider />
 
-        <Text>{review.review}</Text>
+        <Text>{review.content}</Text>
       </Card.Content>
     </Card>
   );
