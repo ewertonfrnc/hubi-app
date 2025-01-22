@@ -4,13 +4,12 @@ export type RootStackParamList = {
   Details: {
     movieId: number;
   };
-};
+} & ExploreStackParamList;
 
 export type ExploreStackParamList = {
   Explore: undefined;
-  Details: {
-    movieId: number;
-  };
+  Details: { movieId: number };
+  MovieActions: { movieId: number };
 };
 
 export type AccountNavigatorParamList = {

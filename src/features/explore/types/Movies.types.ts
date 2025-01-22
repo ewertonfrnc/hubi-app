@@ -130,6 +130,7 @@ export type MovieReview = {
   spoilers?: boolean;
   likeCount: number;
   users: User;
+  reviewLikes: MovieReview[];
 };
 
 export type MovieReviewPayload = {

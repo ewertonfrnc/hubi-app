@@ -11,7 +11,6 @@ import { MovieReview } from "../../explore/types/Movies.types";
 import { theme } from "../../../utils/theme";
 import { BASE_IMAGE_URL } from "../../../utils/tmdb";
 import { useContext, useEffect, useState } from "react";
-import { fetchReviewLikesOnReview } from "../data/fetchReviewLikeOnReview";
 import { registerReviewLike } from "../data/registerReviewLike";
 import { deleteReviewLike } from "../data/deleteReviewLike";
 import { AuthContext } from "../../auth/contexts/auth.context";
@@ -21,74 +20,50 @@ export default function Review({ review }: Props) {
   const { currentUser } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
-  const [likeCount, setLikeCount] = useState(review.likeCount);
   const [hasLikedReview, setHasLikedReview] = useState(false);
-  const [reviewLikes, setReviewLikes] = useState([]);
+  const [reviewLikes, setReviewLikes] = useState(review.reviewLikes || []);
 
   function handleAvatarText() {
     return String(review.users.name.at(0));
   }
 
-  async function hasLikedCurrentReview() {
-    if (!currentUser) return;
-
-    try {
-      const currentReviewLikes = await fetchReviewLikesOnReview(review.id);
-      // console.log("reviewLikes", currentReviewLikes, currentReviewLikes.length);
-
-      const hasLiked = currentReviewLikes.some(
-        (review) => review.userId === currentUser.id
-      );
-
-      // console.log({ hasLiked });
-      setHasLikedReview(hasLiked);
-    } catch (error) {
-      console.log("error", error);
-    }
-  }
-
-  function handleLike() {
-    if (hasLikedReview) removeMovieReviewLike();
-    else addMovieReviewLike();
-  }
-
-  async function addMovieReviewLike() {
+  async function handleLikeButton() {
     if (!currentUser) return;
 
     setLoading(true);
 
-    try {
-      const newReviewLikeDetails = await registerReviewLike(
-        currentUser.id,
-        review.id
+    if (hasLikedReview) {
+      const updatedLikes = reviewLikes.filter(
+        (like) => like.userId !== currentUser.id,
       );
-      setHasLikedReview(true);
-    } catch (error) {
-      console.log("error", error);
-    }
+      setReviewLikes(updatedLikes);
 
-    setLoading(false);
-  }
+      try {
+        await deleteReviewLike(currentUser.id, review.id);
+        setHasLikedReview(false);
+      } catch (error) {
+        console.log("error", error);
+      }
+    } else {
+      try {
+        const newReviewLikeDetails = await registerReviewLike(
+          currentUser.id,
+          review.id,
+        );
 
-  async function removeMovieReviewLike() {
-    if (!currentUser) return;
-
-    setLoading(true);
-
-    try {
-      const removedLike = await deleteReviewLike(currentUser.id, review.id);
-      console.log("removedLike", removedLike);
-
-      setHasLikedReview(false);
-    } catch (error) {
-      console.log("error", error);
+        setHasLikedReview(true);
+        setReviewLikes((prevLikes) => [...prevLikes, newReviewLikeDetails]);
+      } catch (error) {
+        console.log("error", error);
+      }
     }
 
     setLoading(false);
   }
 
   useEffect(() => {
-    hasLikedCurrentReview();
+    const liked = reviewLikes.some((like) => like.userId === currentUser?.id);
+    setHasLikedReview(liked);
   }, []);
 
   return (
@@ -119,13 +94,13 @@ export default function Review({ review }: Props) {
             {loading ? (
               <ActivityIndicator size="small" />
             ) : (
-              <Text>{likeCount}</Text>
+              <Text>{reviewLikes.length}</Text>
             )}
 
             <IconButton
               icon={hasLikedReview ? "heart" : "heart-outline"}
               size={20}
-              onPress={handleLike}
+              onPress={handleLikeButton}
             />
           </View>
         </View>

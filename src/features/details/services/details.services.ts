@@ -21,7 +21,13 @@ class DetailsService {
   async loadMovieReviews(movieId: number): Promise<MovieReview[]> {
     const { data, error } = await supabase
       .from("movie_reviews")
-      .select("*, users(*)")
+      .select(
+        `
+        *, 
+        users: users(*),
+        reviewLikes: movie_review_likes(*)
+        `,
+      )
       .eq("movieId", movieId);
 
     if (error) throw new Error(error.message);
@@ -41,16 +47,16 @@ class DetailsService {
     return data;
   }
 
-  async checkReviewLikesOnReview(reviewId: number) {
-    const { data, error } = await supabase
-      .from("movie_review_likes")
-      .select("*")
-      .eq("reviewId", reviewId);
+  // async checkReviewLikesOnReview(reviewId: number) {
+  //   const { data, error } = await supabase
+  //     .from("movie_review_likes")
+  //     .select("*")
+  //     .eq("reviewId", reviewId);
 
-    if (error) throw new Error(error.message);
+  //   if (error) throw new Error(error.message);
 
-    return data;
-  }
+  //   return data;
+  // }
 
   async addMovieReviewLike(userId: string, reviewId: number) {
     const { data, error } = await supabase
@@ -67,19 +73,15 @@ class DetailsService {
   }
 
   async removeMovieReviewLike(userId: string, reviewId: number) {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("movie_review_likes")
       .delete()
       .eq("userId", userId)
-      .eq("reviewId", reviewId)
-      .select()
-      .single();
+      .eq("reviewId", reviewId);
 
     if (error) {
       throw new Error(`Error removing like: ${error.message}`);
     }
-
-    return data;
   }
 }
 

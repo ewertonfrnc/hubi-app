@@ -9,7 +9,6 @@ import {
 import type { User } from "../types/user.types";
 import supabase from "../../../utils/config/supabase.config";
 import { Session } from "@supabase/supabase-js";
-import AuthService from "../services/auth.service";
 import { fetchCurrentUser } from "../data";
 
 type InitialState = {

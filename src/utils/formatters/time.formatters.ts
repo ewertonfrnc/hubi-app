@@ -40,3 +40,7 @@ export const minToHours = (minutos: number) => {
 export const getFullYear = (date: string) => {
   return new Date(date).getFullYear();
 };
+
+export function formatToHumanDate(date: Date) {
+  return DateTime.fromJSDate(date).toFormat("DDDD");
+}

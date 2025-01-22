@@ -1,67 +1,19 @@
-import { StyleSheet, View } from "react-native";
-import {
-  ActivityIndicator,
-  Button,
-  Dialog,
-  Divider,
-  Modal,
-  Portal,
-  Snackbar,
-  Text,
-  TextInput,
-} from "react-native-paper";
-import { theme } from "../../../utils/theme";
 import { useContext, useEffect, useState } from "react";
-import {
-  Movie,
-  MovieReview,
-  MovieReviewPayload,
-} from "../../explore/types/Movies.types";
-import { fetchMovieReviews } from "../data/fetchMovieReviews";
-import Review from "./Review";
-import { registerNewReview } from "../data/registerNewReview";
-import { AuthContext } from "../../auth/contexts/auth.context";
-import supabase from "../../../utils/config/supabase.config";
-import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import { fetchUserById } from "../data/fetchUserById";
+import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, Text } from "react-native-paper";
+import { Movie } from "../../explore/types/Movies.types";
 
-type Props = {
-  movie: Movie;
-  showModal: boolean;
-  handleModal: () => void;
-};
-export default function MovieReviews({ movie, showModal, handleModal }: Props) {
-  const { currentUser } = useContext(AuthContext);
+import { fetchMovieReviews } from "../data/fetchMovieReviews";
+import { ReviewsContext } from "../contexts/reviews.context";
+import { theme } from "../../../utils/theme";
+
+import Review from "./Review";
+
+type Props = { movie: Movie };
+export default function MovieReviews({ movie }: Props) {
+  const { reviews, setReviews } = useContext(ReviewsContext);
 
   const [loading, setLoading] = useState(true);
-  const [showSnackbar, setShowSnackbar] = useState(false);
-
-  const [reviews, setReviews] = useState<MovieReview[]>([]);
-  const [comment, setComment] = useState("");
-
-  function handleSnackbar() {
-    setShowSnackbar((prev) => !prev);
-  }
-
-  async function handlePostEvent(
-    payload: RealtimePostgresChangesPayload<MovieReview>
-  ) {
-    if (payload.eventType === "INSERT" && payload?.new?.id) {
-      const newReview = { ...payload.new };
-      const reviewAuthor = await fetchUserById(newReview.userId);
-
-      newReview.users = reviewAuthor;
-      setReviews((prevReviews) => [newReview, ...prevReviews]);
-    }
-
-    if (payload.eventType === "DELETE") {
-      const updatedReviews = reviews.filter(
-        (review) => review.id !== payload.old.id
-      );
-
-      setReviews(updatedReviews);
-    }
-  }
 
   async function loadReviews() {
     setLoading(true);
@@ -74,40 +26,8 @@ export default function MovieReviews({ movie, showModal, handleModal }: Props) {
     setLoading(false);
   }
 
-  async function saveMovieReview() {
-    if (!currentUser || !movie) return;
-
-    const payload: MovieReviewPayload = {
-      userId: currentUser.id,
-      movieId: movie.id,
-      content: comment,
-    };
-
-    try {
-      await registerNewReview(payload);
-
-      handleSnackbar();
-      handleModal();
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   useEffect(() => {
-    const postChannel = supabase
-      .channel("reviews")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "movie_reviews" },
-        handlePostEvent
-      )
-      .subscribe();
-
     loadReviews();
-
-    return () => {
-      postChannel.unsubscribe();
-    };
   }, []);
 
   return (
@@ -124,44 +44,6 @@ export default function MovieReviews({ movie, showModal, handleModal }: Props) {
           .filter((_, idx) => idx < 3)
           .map((review) => <Review key={review.id} review={review} />)
       )}
-
-      <Snackbar visible={showSnackbar} onDismiss={handleSnackbar}>
-        Comentário criado com sucesso!
-      </Snackbar>
-
-      <Portal>
-        <Modal
-          visible={showModal}
-          onDismiss={handleModal}
-          contentContainerStyle={styles.modal}
-        >
-          <View style={styles.modalHeading}>
-            <Text variant="titleMedium" style={styles.modalTitle}>
-              💬 Novo comentário
-            </Text>
-          </View>
-
-          <Divider />
-
-          <TextInput
-            multiline
-            mode="outlined"
-            value={comment}
-            numberOfLines={4}
-            style={{ height: 140 }}
-            onChangeText={(text) => setComment(text)}
-          />
-
-          <Button
-            mode="contained"
-            loading={loading}
-            disabled={loading}
-            onPress={saveMovieReview}
-          >
-            Comentar
-          </Button>
-        </Modal>
-      </Portal>
     </View>
   );
 }

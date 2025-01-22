@@ -6,6 +6,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { reactPaperTheme } from "./src/utils/theme";
 
 import { AuthProvider } from "./src/features/auth/contexts/auth.context";
+import { ReviewsProvider } from "./src/features/details/contexts/reviews.context";
+
 import Navigation from "./src/navigation";
 
 export default function App() {
@@ -13,7 +15,9 @@ export default function App() {
     <SafeAreaProvider style={styles.container}>
       <PaperProvider theme={reactPaperTheme}>
         <AuthProvider>
-          <Navigation />
+          <ReviewsProvider>
+            <Navigation />
+          </ReviewsProvider>
         </AuthProvider>
       </PaperProvider>
 
@@ -25,6 +29,5 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111",
   },
 });
