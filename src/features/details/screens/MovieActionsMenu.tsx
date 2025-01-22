@@ -1,11 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import {
-  Image,
-  ImageBackground,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ImageBackground, Pressable, StyleSheet, View } from "react-native";
 import { Button, Divider, Snackbar, Text, TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,6 +24,7 @@ import {
 import { ReviewsContext } from "../contexts/reviews.context";
 import { AuthContext } from "../../auth/contexts/auth.context";
 import { registerNewReview } from "../data/registerNewReview";
+import MovieRating from "../components/MovieRating";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MovieActions">;
 export default function MovieActionsMenu({ route, navigation }: Props) {
@@ -39,6 +34,7 @@ export default function MovieActionsMenu({ route, navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [movie, setMovieDetails] = useState<Movie>();
+  const [rating, setRating] = useState(3);
   const [reviewContent, setReviewContent] = useState("");
 
   async function loadMovieDetails() {
@@ -71,6 +67,10 @@ export default function MovieActionsMenu({ route, navigation }: Props) {
       );
       setReviews(updatedReviews);
     }
+  }
+
+  function handleRating(rating: number) {
+    setRating(rating);
   }
 
   async function saveMovieReview() {
@@ -141,7 +141,7 @@ export default function MovieActionsMenu({ route, navigation }: Props) {
           <Text variant="titleMedium" style={styles.title}>
             Sua avaliação
           </Text>
-          <Text>⭐⭐⭐⭐⭐</Text>
+          <MovieRating onFinishRating={handleRating} />
         </View>
 
         <Divider />
