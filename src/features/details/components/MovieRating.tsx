@@ -6,7 +6,7 @@ const RATING_MAX_VALUE = 5;
 
 type Props = { onFinishRating: (rating: number) => void };
 export default function MovieRating({ onFinishRating }: Props) {
-  const [rating, setRating] = useState(3);
+  const [rating, setRating] = useState(0);
 
   const handlePress = (index: number) => {
     const currentRating = rating;

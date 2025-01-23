@@ -5,6 +5,7 @@ import {
   TMDBMovie,
 } from "../../explore/types/Movies.types";
 import supabase from "../../../utils/config/supabase.config";
+import { MovieRatingPayload } from "../types";
 
 class DetailsService {
   async getMovieDetails(movieId: number): Promise<TMDBMovie> {
@@ -47,17 +48,6 @@ class DetailsService {
     return data;
   }
 
-  // async checkReviewLikesOnReview(reviewId: number) {
-  //   const { data, error } = await supabase
-  //     .from("movie_review_likes")
-  //     .select("*")
-  //     .eq("reviewId", reviewId);
-
-  //   if (error) throw new Error(error.message);
-
-  //   return data;
-  // }
-
   async addMovieReviewLike(userId: string, reviewId: number) {
     const { data, error } = await supabase
       .from("movie_review_likes")
@@ -82,6 +72,17 @@ class DetailsService {
     if (error) {
       throw new Error(`Error removing like: ${error.message}`);
     }
+  }
+
+  async saveMovieRating(payload: MovieRatingPayload) {
+    const { data, error } = await supabase
+      .from("movie_ratings")
+      .insert([payload])
+      .select();
+
+    if (error) throw new Error(`Error adding rating: ${error.message}`);
+
+    return data;
   }
 }
 

@@ -7,21 +7,12 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../navigation/types/RootStack.types";
 
 import { fetchMovieDetails } from "../data/fetchMovieDetails";
-import { fetchUserById } from "../data/fetchUserById";
 
 import { DateTime } from "luxon";
 import { theme } from "../../../utils/theme";
 import { BASE_IMAGE_URL } from "../../../utils/tmdb";
 
-import supabase from "../../../utils/config/supabase.config";
-import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-
-import {
-  Movie,
-  MovieReview,
-  MovieReviewPayload,
-} from "../../explore/types/Movies.types";
-import { ReviewsContext } from "../contexts/reviews.context";
+import { Movie, MovieReviewPayload } from "../../explore/types/Movies.types";
 import { AuthContext } from "../../auth/contexts/auth.context";
 import { registerNewReview } from "../data/registerNewReview";
 import MovieRating from "../components/MovieRating";
@@ -29,7 +20,6 @@ import MovieRating from "../components/MovieRating";
 type Props = NativeStackScreenProps<RootStackParamList, "MovieActions">;
 export default function MovieActionsMenu({ route, navigation }: Props) {
   const { currentUser } = useContext(AuthContext);
-  const { reviews, setReviews } = useContext(ReviewsContext);
 
   const [loading, setLoading] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
@@ -52,25 +42,21 @@ export default function MovieActionsMenu({ route, navigation }: Props) {
     setShowSnackbar((prev) => !prev);
   }
 
-  async function handlePostEvent(
-    payload: RealtimePostgresChangesPayload<MovieReview>,
-  ) {
-    if (payload.eventType === "INSERT" && payload?.new?.id) {
-      const newReview = { ...payload.new };
-      newReview.users = await fetchUserById(newReview.userId);
-      setReviews((prevReviews) => [newReview, ...prevReviews]);
-    }
-
-    if (payload.eventType === "DELETE") {
-      const updatedReviews = reviews.filter(
-        (review) => review.id !== payload.old.id,
-      );
-      setReviews(updatedReviews);
-    }
-  }
-
   function handleRating(rating: number) {
     setRating(rating);
+  }
+
+  function handleSubmit() {
+    saveMovieReview();
+    handleMovieRating();
+
+    navigation.goBack();
+  }
+
+  async function handleMovieRating() {
+    if (!rating) {
+      console.log({ rating });
+    }
   }
 
   async function saveMovieReview() {
@@ -84,7 +70,6 @@ export default function MovieActionsMenu({ route, navigation }: Props) {
 
     try {
       await registerNewReview(payload);
-      navigation.goBack();
       handleSnackbar();
     } catch (error) {
       console.log(error);
@@ -96,20 +81,7 @@ export default function MovieActionsMenu({ route, navigation }: Props) {
   }
 
   useEffect(() => {
-    const postChannel = supabase
-      .channel("reviews")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "movie_reviews" },
-        handlePostEvent,
-      )
-      .subscribe();
-
     loadMovieDetails();
-
-    return () => {
-      postChannel.unsubscribe();
-    };
   }, []);
 
   const formattedDate = DateTime.fromJSDate(DateTime.now().toJSDate()).toFormat(
@@ -178,7 +150,7 @@ export default function MovieActionsMenu({ route, navigation }: Props) {
             Descartar
           </Button>
 
-          <Button mode="elevated" onPress={saveMovieReview}>
+          <Button mode="elevated" onPress={handleSubmit}>
             Enviar
           </Button>
         </View>
